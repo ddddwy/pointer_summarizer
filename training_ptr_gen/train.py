@@ -29,7 +29,7 @@ class Train(object):
                                batch_size=config.batch_size, single_pass=False)
         time.sleep(5)
 
-        self.model_dir = os.path.join(config.log_root, 'model')
+        self.model_dir = os.path.join(config.log_root, 'train_model')
         if not os.path.exists(self.model_dir):
             os.mkdir(self.model_dir)
         
@@ -47,8 +47,13 @@ class Train(object):
             'optimizer': self.optimizer.state_dict(),
             'current_loss': running_avg_loss
         }
-        model_save_path = os.path.join(self.model_dir, 'model_best')
-        torch.save(state, model_save_path)
+        if len(os.listdir(self.model_dir))>0:
+            shutil.rmtree(self.model_dir)
+            time.sleep(2)
+            os.mkdir(self.model_dir)
+        train_model_path = os.path.join(self.model_dir, 'model_best')
+        torch.save(state, train_model_path)
+        return train_model_path
 
     def setup_train(self, model_file_path=None):
         self.model = Model(model_file_path)
@@ -138,14 +143,13 @@ class Train(object):
                                                                            time.time() - start, loss, global_minimum_loss))
                 start = time.time()
             if iter % 1000 == 0:
-                if iter == 1000:
-                    self.save_model(running_avg_loss, iter)
-                eval_processor = Evaluate(self.model_dir)
+                train_model_path = self.save_model(running_avg_loss, iter)
+                eval_processor = Evaluate(train_model_path)
                 eval_avg_loss = eval_processor.run_eval()
                 if eval_avg_loss < global_minimum_loss:
                     global_minimum_loss = eval_avg_loss
-                    model_save_path = eval_processor.save_model(running_avg_loss, iter, self.model_dir)
-                    print('Save best model at %s'%model_save_path)
+                    test_model_path = eval_processor.save_model(running_avg_loss, iter)
+                    print('Save best model at %s'%test_model_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")

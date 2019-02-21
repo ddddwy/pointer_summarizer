@@ -26,6 +26,10 @@ class Evaluate(object):
         self.model_file_path = model_file_path
         time.sleep(5)
 #        model_name = os.path.basename(model_file_path)
+        
+        self.model_dir = os.path.join(config.log_root, 'test_model')
+        if not os.path.exists(self.model_dir):
+            os.mkdir(self.model_dir)
 
         eval_dir = os.path.join(config.log_root, 'eval_log')
         if not os.path.exists(eval_dir):
@@ -88,7 +92,7 @@ class Evaluate(object):
             batch = self.batcher.next_batch()
         return running_avg_loss
     
-    def save_model(self, running_avg_loss, iter, model_file_path):
+    def save_model(self, running_avg_loss, iter):
         state = {
             'iter': iter,
             'encoder_state_dict': self.model.encoder.state_dict(),
@@ -98,12 +102,13 @@ class Evaluate(object):
             'current_loss': running_avg_loss
         }
         
-        if len(os.listdir(model_file_path))>0:
-            shutil.rmtree(model_file_path)
+        if len(os.listdir(self.model_dir))>0:
+            shutil.rmtree(self.model_dir)
             time.sleep(2)
-            os.mkdir(model_file_path)
-        torch.save(state, model_file_path)
-        return model_file_path
+            os.mkdir(self.model_dir)
+        test_model_path = os.path.join(self.model_dir, 'model_best')
+        torch.save(state, test_model_path)
+        return test_model_path
 
 
 if __name__ == '__main__':
