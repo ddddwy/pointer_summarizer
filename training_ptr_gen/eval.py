@@ -23,9 +23,9 @@ class Evaluate(object):
         self.batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
                                batch_size=config.batch_size, single_pass=True)
         time.sleep(15)
-        model_name = os.path.basename(model_file_path)
+#        model_name = os.path.basename(model_file_path)
 
-        eval_dir = os.path.join(config.log_root, 'eval_%s' % (model_name))
+        eval_dir = os.path.join(config.log_root, 'eval_best_model')
         if not os.path.exists(eval_dir):
             os.mkdir(eval_dir)
         self.summary_writer = tf.summary.FileWriter(eval_dir)
@@ -71,6 +71,7 @@ class Evaluate(object):
         start = time.time()
         batch = self.batcher.next_batch()
         while batch is not None:
+            print("Eval batch is not None!!!!!")
             loss = self.eval_one_batch(batch)
 
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
