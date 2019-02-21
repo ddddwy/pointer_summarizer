@@ -11,11 +11,11 @@ log_root = os.path.join(root_dir, "pointer_summarizer/log")
 # Hyperparameters
 hidden_dim= 256
 emb_dim= 128
-batch_size= 16
+batch_size= 8
 max_enc_steps=20
 max_dec_steps=20
 beam_size=4
-min_dec_steps=10
+min_dec_steps=5
 vocab_size=5000
 
 lr=0.15

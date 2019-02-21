@@ -25,7 +25,7 @@ class Evaluate(object):
         time.sleep(15)
 #        model_name = os.path.basename(model_file_path)
 
-        eval_dir = os.path.join(config.log_root, 'eval_best_model')
+        eval_dir = os.path.join(config.log_root, 'eval_log')
         if not os.path.exists(eval_dir):
             os.mkdir(eval_dir)
         self.summary_writer = tf.summary.FileWriter(eval_dir)
