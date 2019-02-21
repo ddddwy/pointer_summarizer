@@ -12,10 +12,10 @@ from torch.nn.utils import clip_grad_norm_
 
 from torch.optim import Adagrad
 
-from data_util import config
-from data_util.batcher import Batcher
-from data_util.data import Vocab
-from data_util.utils import calc_running_avg_loss
+import config
+from batcher import Batcher
+from data import Vocab
+from utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
 from eval import Evaluate
 

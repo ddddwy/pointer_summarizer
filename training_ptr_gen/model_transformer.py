@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function, division
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util import config
+import config
 from numpy import random
 import numpy as np
 

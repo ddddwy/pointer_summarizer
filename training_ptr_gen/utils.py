@@ -1,6 +1,6 @@
 #Content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
 import os
-import pyrouge
+#import pyrouge
 import logging
 import tensorflow as tf
 
