@@ -135,8 +135,8 @@ class Train(object):
                 self.summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
-                print('steps %d, seconds for %d batch: %.2f , loss: %f' % (iter, print_interval,
-                                                                           time.time() - start, loss))
+                print('steps %d, seconds for %d batch: %.2f , loss: %f, global_min_loss: %f' % (iter, print_interval,
+                                                                           time.time() - start, loss, global_minimum_loss))
                 start = time.time()
             if iter % 1000 == 0:
             	if iter == 1000:
