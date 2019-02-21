@@ -71,7 +71,6 @@ class Evaluate(object):
         start = time.time()
         batch = self.batcher.next_batch()
         while batch is not None:
-            print("Eval batch is not None!!!!!")
             loss = self.eval_one_batch(batch)
 
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
