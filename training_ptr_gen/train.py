@@ -29,7 +29,7 @@ class Train(object):
                                batch_size=config.batch_size, single_pass=False)
         time.sleep(5)
 
-        self.model_dir = os.path.join(config.log_root, 'best_model')
+        self.model_dir = os.path.join(config.log_root, 'model')
         if not os.path.exists(self.model_dir):
             os.mkdir(self.model_dir)
         
@@ -47,8 +47,8 @@ class Train(object):
             'optimizer': self.optimizer.state_dict(),
             'current_loss': running_avg_loss
         }
-        
-        torch.save(state, self.model_dir)
+        model_save_path = os.path.join(self.model_dir, 'model_best')
+        torch.save(state, model_save_path)
 
     def setup_train(self, model_file_path=None):
         self.model = Model(model_file_path)
