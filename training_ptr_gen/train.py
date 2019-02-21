@@ -6,6 +6,7 @@ import argparse
 
 import tensorflow as tf
 import torch
+import numpy as np
 from model import Model
 from torch.nn.utils import clip_grad_norm_
 
@@ -16,6 +17,7 @@ from data_util.batcher import Batcher
 from data_util.data import Vocab
 from data_util.utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
+from eval import Evaluate
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
@@ -47,6 +49,7 @@ class Train(object):
         }
         model_save_path = os.path.join(self.model_dir, 'model_%d_%d' % (iter, int(time.time())))
         torch.save(state, model_save_path)
+        return model_save_path
 
     def setup_train(self, model_file_path=None):
         self.model = Model(model_file_path)
@@ -120,6 +123,7 @@ class Train(object):
     def trainIters(self, n_iters, model_file_path=None):
         iter, running_avg_loss = self.setup_train(model_file_path)
         start = time.time()
+        global_minimum_loss = np.inf
         while iter < n_iters:
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
@@ -127,15 +131,21 @@ class Train(object):
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
             iter += 1
 
-            if iter % 100 == 0:
+            if iter % 10 == 0:
                 self.summary_writer.flush()
-            print_interval = 1000
+            print_interval = 10
             if iter % print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss))
                 start = time.time()
-            if iter % 5000 == 0:
-                self.save_model(running_avg_loss, iter)
+            if iter % 1000 == 0:
+            	if iter == 1000:
+            		model_save_path = self.save_model(running_avg_loss, iter)
+            	eval_processor = Evaluate(model_save_path)
+            	eval_avg_loss = eval_processor.run_eval()
+            	if eval_avg_loss < global_minimum_loss:
+            		model_save_path = self.save_model(running_avg_loss, iter)
+            		print('Save best model at %s'%model_save_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")

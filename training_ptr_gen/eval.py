@@ -63,7 +63,8 @@ class Evaluate(object):
         batch_avg_loss = sum_step_losses / dec_lens_var
         loss = torch.mean(batch_avg_loss)
 
-        return loss.data[0]
+#        return loss.data[0]
+        return loss
 
     def run_eval(self):
         running_avg_loss, iter = 0, 0
@@ -83,6 +84,7 @@ class Evaluate(object):
                 iter, print_interval, time.time() - start, running_avg_loss))
                 start = time.time()
             batch = self.batcher.next_batch()
+        return running_avg_loss
 
 
 if __name__ == '__main__':
