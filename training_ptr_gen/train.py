@@ -48,15 +48,7 @@ class Train(object):
             'current_loss': running_avg_loss
         }
         
-        model_save_path = self.model_dir
-        if not os.path.exists(model_save_path):
-            os.mkdir(model_save_path)
-        else:
-            shutil.rmtree(model_save_path)
-            time.sleep(2)
-            os.mkdir(model_save_path)
-        torch.save(state, model_save_path)
-        return model_save_path
+        torch.save(state, self.model_dir)
 
     def setup_train(self, model_file_path=None):
         self.model = Model(model_file_path)
@@ -146,6 +138,8 @@ class Train(object):
                                                                            time.time() - start, loss, global_minimum_loss))
                 start = time.time()
             if iter % 1000 == 0:
+                if iter == 1000:
+                    self.save_model(running_avg_loss, iter)
                 eval_processor = Evaluate(self.model_dir)
                 eval_avg_loss = eval_processor.run_eval()
                 if eval_avg_loss < global_minimum_loss:
