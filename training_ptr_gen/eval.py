@@ -78,7 +78,7 @@ class Evaluate(object):
 
             if iter % 100 == 0:
                 self.summary_writer.flush()
-            print_interval = 1000
+            print_interval = 100
             if iter % print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
                 iter, print_interval, time.time() - start, running_avg_loss))

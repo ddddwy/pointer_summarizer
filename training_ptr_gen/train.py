@@ -144,6 +144,7 @@ class Train(object):
             	eval_processor = Evaluate(model_save_path)
             	eval_avg_loss = eval_processor.run_eval()
             	if eval_avg_loss < global_minimum_loss:
+				    global_minimum_loss = eval_avg_loss
             		model_save_path = self.save_model(running_avg_loss, iter)
             		print('Save best model at %s'%model_save_path)
 
