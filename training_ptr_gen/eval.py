@@ -3,6 +3,7 @@ from __future__ import unicode_literals, print_function, division
 import os
 import time
 import sys
+import shutil
 
 import tensorflow as tf
 import torch
@@ -22,7 +23,8 @@ class Evaluate(object):
         self.vocab = Vocab(config.vocab_path, config.vocab_size)
         self.batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
                                batch_size=config.batch_size, single_pass=True)
-        time.sleep(15)
+        self.model_file_path = model_file_path
+        time.sleep(5)
 #        model_name = os.path.basename(model_file_path)
 
         eval_dir = os.path.join(config.log_root, 'eval_log')
@@ -85,6 +87,23 @@ class Evaluate(object):
                 start = time.time()
             batch = self.batcher.next_batch()
         return running_avg_loss
+    
+    def save_model(self, running_avg_loss, iter, model_file_path):
+        state = {
+            'iter': iter,
+            'encoder_state_dict': self.model.encoder.state_dict(),
+            'decoder_state_dict': self.model.decoder.state_dict(),
+            'reduce_state_dict': self.model.reduce_state.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
+            'current_loss': running_avg_loss
+        }
+        
+        if len(os.listdir(model_file_path))>0:
+            shutil.rmtree(model_file_path)
+            time.sleep(2)
+            os.mkdir(model_file_path)
+        torch.save(state, model_file_path)
+        return model_file_path
 
 
 if __name__ == '__main__':

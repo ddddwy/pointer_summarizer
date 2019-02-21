@@ -27,17 +27,16 @@ class Train(object):
         self.vocab = Vocab(config.vocab_path, config.vocab_size)
         self.batcher = Batcher(config.train_data_path, self.vocab, mode='train',
                                batch_size=config.batch_size, single_pass=False)
-        time.sleep(15)
+        time.sleep(5)
 
-        self.train_dir = os.path.join(config.log_root, 'best_model')
-        if not os.path.exists(self.train_dir):
-            os.mkdir(self.train_dir)
-
-#        self.model_dir = os.path.join(train_dir, 'model')
-#        if not os.path.exists(self.model_dir):
-#            os.mkdir(self.model_dir)
-
-        self.summary_writer = tf.summary.FileWriter(self.train_dir)
+        self.model_dir = os.path.join(config.log_root, 'best_model')
+        if not os.path.exists(self.model_dir):
+            os.mkdir(self.model_dir)
+        
+        self.train_log = os.path.join(config.log_root, 'train_log')
+        if not os.path.exists(self.train_log):
+            os.mkdir(self.train_log)
+        self.summary_writer = tf.summary.FileWriter(self.train_log)
 
     def save_model(self, running_avg_loss, iter):
         state = {
@@ -49,7 +48,7 @@ class Train(object):
             'current_loss': running_avg_loss
         }
         
-        model_save_path = self.train_dir
+        model_save_path = self.model_dir
         if not os.path.exists(model_save_path):
             os.mkdir(model_save_path)
         else:
@@ -147,14 +146,12 @@ class Train(object):
                                                                            time.time() - start, loss, global_minimum_loss))
                 start = time.time()
             if iter % 1000 == 0:
-            	if iter == 1000:
-            		model_save_path = self.save_model(running_avg_loss, iter)
-            	eval_processor = Evaluate(model_save_path)
-            	eval_avg_loss = eval_processor.run_eval()
-            	if eval_avg_loss < global_minimum_loss:
-                 global_minimum_loss = eval_avg_loss
-                 model_save_path = self.save_model(running_avg_loss, iter)
-                 print('Save best model at %s'%model_save_path)
+                eval_processor = Evaluate(self.model_dir)
+                eval_avg_loss = eval_processor.run_eval()
+                if eval_avg_loss < global_minimum_loss:
+                    global_minimum_loss = eval_avg_loss
+                    model_save_path = eval_processor.save_model(running_avg_loss, iter, self.model_dir)
+                    print('Save best model at %s'%model_save_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")
