@@ -187,7 +187,7 @@ class Train(object):
             eval_summary_writer.add_summary(loss_sum, iter)
 
             if iter % 1000 == 0:
-                eval_summary_writer.info()
+                eval_summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
                 tf.logging.info('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
