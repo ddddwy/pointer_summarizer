@@ -86,9 +86,6 @@ class Train(object):
             get_output_from_batch(batch, use_cuda)
 
         self.optimizer.zero_grad()
-        self.model.encoder().train()
-        self.model.decoder().train()
-        self.model.reduce_state().train()
         
         encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
         s_t_1 = self.model.reduce_state(encoder_hidden)
@@ -195,6 +192,10 @@ class Train(object):
         start = time.time()
         min_val_loss = np.inf
         while iter < n_iters:
+            self.model.encoder().train()
+            self.model.decoder().train()
+            self.model.reduce_state().train()
+            
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
 
