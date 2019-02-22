@@ -18,7 +18,6 @@ from batcher import Batcher
 from data import Vocab
 from utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
-from eval import Evaluate
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
@@ -51,7 +50,7 @@ class Train(object):
             shutil.rmtree(self.model_dir)
             time.sleep(2)
             os.mkdir(self.model_dir)
-        train_model_path = os.path.join(self.model_dir, 'model_best')
+        train_model_path = os.path.join(self.model_dir, 'model_best_%d'%(iter))
         torch.save(state, train_model_path)
         return train_model_path
 
@@ -87,7 +86,7 @@ class Train(object):
             get_output_from_batch(batch, use_cuda)
 
         self.optimizer.zero_grad()
-
+        self.model.train()
         encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
         s_t_1 = self.model.reduce_state(encoder_hidden)
 
@@ -123,11 +122,73 @@ class Train(object):
         self.optimizer.step()
 
         return loss.item()
+    
+    def eval_one_batch(self, batch):
+        enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_1, coverage = \
+            get_input_from_batch(batch, use_cuda)
+        dec_batch, dec_padding_mask, max_dec_len, dec_lens_var, target_batch = \
+            get_output_from_batch(batch, use_cuda)
+            
+        self.model.eval()
+        with torch.no_grad():
+            encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+            s_t_1 = self.model.reduce_state(encoder_hidden)
+    
+            step_losses = []
+            for di in range(min(max_dec_len, config.max_dec_steps)):
+                y_t_1 = dec_batch[:, di]  # Teacher forcing
+                final_dist, s_t_1, c_t_1,attn_dist, p_gen, next_coverage = self.model.decoder(y_t_1, s_t_1,
+                                                            encoder_outputs, encoder_feature, enc_padding_mask, c_t_1,
+                                                            extra_zeros, enc_batch_extend_vocab, coverage, di)
+                target = target_batch[:, di]
+                gold_probs = torch.gather(final_dist, 1, target.unsqueeze(1)).squeeze()
+                step_loss = -torch.log(gold_probs + config.eps)
+                if config.is_coverage:
+                    step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
+                    step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
+                    coverage = next_coverage
+    
+                step_mask = dec_padding_mask[:, di]
+                step_loss = step_loss * step_mask
+                step_losses.append(step_loss)
+
+        sum_step_losses = torch.sum(torch.stack(step_losses, 1), 1)
+        batch_avg_loss = sum_step_losses / dec_lens_var
+        loss = torch.mean(batch_avg_loss)
+        
+        return loss
+    
+    def run_eval(self):
+        eval_dir = os.path.join(config.log_root, 'eval_log')
+        if not os.path.exists(eval_dir):
+            os.mkdir(eval_dir)
+        eval_summary_writer = tf.summary.FileWriter(eval_dir)
+        
+        val_avg_loss, iter = 0, 0
+        start = time.time()
+        val_batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
+                               batch_size=config.batch_size, single_pass=True)
+        val_batch = val_batcher.next_batch()
+        while val_batch is not None:
+            loss = self.eval_one_batch(val_batch)
+
+            val_avg_loss = calc_running_avg_loss(loss, val_avg_loss, eval_summary_writer, iter)
+            iter += 1
+
+            if iter % 1000 == 0:
+                eval_summary_writer.flush()
+            print_interval = 100
+            if iter % print_interval == 0:
+                print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
+                iter, print_interval, time.time() - start, val_avg_loss))
+                start = time.time()
+            val_batch = val_batcher.next_batch()
+        return val_avg_loss
 
     def trainIters(self, n_iters, model_file_path=None):
         iter, running_avg_loss = self.setup_train(model_file_path)
         start = time.time()
-        global_minimum_loss = np.inf
+        min_val_loss = np.inf
         while iter < n_iters:
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
@@ -135,21 +196,18 @@ class Train(object):
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
             iter += 1
 
-            if iter % 1000 == 0:
-                self.summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
-                print('steps %d, seconds for %d batch: %.2f , loss: %f, global_min_loss: %f' % (iter, print_interval,
-                                                                           time.time() - start, loss, global_minimum_loss))
+                print('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
+                                                                           time.time() - start, loss, min_val_loss))
                 start = time.time()
             if iter % 1000 == 0:
-                train_model_path = self.save_model(running_avg_loss, iter)
-                eval_processor = Evaluate(train_model_path)
-                eval_avg_loss = eval_processor.run_eval()
-                if eval_avg_loss < global_minimum_loss:
-                    global_minimum_loss = eval_avg_loss
-                    test_model_path = eval_processor.save_model(running_avg_loss, iter)
-                    print('Save best model at %s'%test_model_path)
+                self.summary_writer.flush()
+                val_avg_loss = self.run_eval()
+                if val_avg_loss < min_val_loss:
+                    min_val_loss = val_avg_loss
+                    train_model_path = self.save_model(running_avg_loss, iter)
+                    print('Save best model at %s'%train_model_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")
