@@ -212,7 +212,7 @@ class Train(object):
                 tf.logging.info('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
-            if iter % 1000 == 0:
+            if iter % 5000 == 0:
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
                 tf.logging.info('Evaluate the model %s at validation set....'%model_file_path)

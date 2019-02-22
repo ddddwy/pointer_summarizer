@@ -30,7 +30,7 @@ is_coverage = False
 cov_loss_wt = 1.0
 
 eps = 1e-12
-max_iterations = 100000
+max_iterations = 1000000
 
 use_gpu=True
 
