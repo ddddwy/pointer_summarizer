@@ -215,9 +215,9 @@ class Model(object):
             decoder = decoder.cuda()
             reduce_state = reduce_state.cuda()
 
-        self.encoder = encoder
-        self.decoder = decoder
-        self.reduce_state = reduce_state
+        self.encoder = encoder.train()
+        self.decoder = decoder.train()
+        self.reduce_state = reduce_state.train()
 
         if model_file_path is not None:
             state = torch.load(model_file_path, map_location= lambda storage, location: storage)
