@@ -179,18 +179,19 @@ class Train(object):
         while val_batch is not None:
             loss = self.eval_one_batch(val_batch)
 
-            val_avg_loss = calc_running_avg_loss(loss, val_avg_loss, eval_summary_writer, iter)
             iter += 1
+            val_avg_loss += loss
+            eval_summary_writer.add_summary(loss, iter)
 
             if iter % 1000 == 0:
                 eval_summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
-                iter, print_interval, time.time() - start, val_avg_loss))
+                iter, print_interval, time.time() - start, val_avg_loss/iter))
                 start = time.time()
             val_batch = val_batcher.next_batch()
-        return val_avg_loss
+        return val_avg_loss/iter
 
     def trainIters(self, n_iters, model_file_path=None):
         iter, running_avg_loss = self.setup_train(model_file_path)
