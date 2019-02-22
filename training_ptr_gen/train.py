@@ -55,7 +55,8 @@ class Train(object):
         return train_model_path
 
     def setup_train(self, model_file_path=None):
-        self.model = Model(model_file_path)
+        device = torch.device("cuda" if use_cuda else "cpu")
+        self.model = Model(model_file_path).to(device)
 
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
