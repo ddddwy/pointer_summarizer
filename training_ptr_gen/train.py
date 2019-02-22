@@ -189,7 +189,7 @@ class Train(object):
                 eval_summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
-                tf.logging.critical('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
+                tf.logging.flush('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
                 iter, print_interval, time.time() - start, val_avg_loss/iter))
                 start = time.time()
             val_batch = val_batcher.next_batch()
@@ -208,20 +208,20 @@ class Train(object):
 
             print_interval = 100
             if iter % print_interval == 0:
-                tf.logging.critical('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
+                tf.logging.flush('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
             if iter % 1000 == 0:
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
-                tf.logging.critical('Evaluate the model %s at validation set....'%model_file_path)
+                tf.logging.flush('Evaluate the model %s at validation set....'%model_file_path)
                 self.model = Model(model_file_path, is_eval=True)
                 val_avg_loss = self.run_eval()
                 self.model = Model(model_file_path, is_eval=False)
                 if val_avg_loss < min_val_loss:
                     min_val_loss = val_avg_loss
                     best_model_file_path = self.save_model(running_avg_loss, iter, mode='eval')
-                    tf.logging.critical('Save best model at %s'%best_model_file_path)
+                    tf.logging.flush('Save best model at %s'%best_model_file_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")
