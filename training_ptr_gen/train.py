@@ -55,8 +55,7 @@ class Train(object):
         return train_model_path
 
     def setup_train(self, model_file_path=None):
-        device = torch.device("cuda" if use_cuda else "cpu")
-        self.model = Model(model_file_path).to(device)
+        self.model = Model(model_file_path)
 
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
@@ -87,7 +86,10 @@ class Train(object):
             get_output_from_batch(batch, use_cuda)
 
         self.optimizer.zero_grad()
-        self.model.train()
+        self.model.encoder().train()
+        self.model.decoder().train()
+        self.model.reduce_state().train()
+        
         encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
         s_t_1 = self.model.reduce_state(encoder_hidden)
 
@@ -130,7 +132,9 @@ class Train(object):
         dec_batch, dec_padding_mask, max_dec_len, dec_lens_var, target_batch = \
             get_output_from_batch(batch, use_cuda)
             
-        self.model.eval()
+        self.model.encoder.eval()
+        self.model.decoder.eval()
+        self.model.reduce_state.eval()    
         with torch.no_grad():
             encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
             s_t_1 = self.model.reduce_state(encoder_hidden)
