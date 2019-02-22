@@ -154,7 +154,7 @@ class Train(object):
         batch_avg_loss = sum_step_losses / dec_lens_var
         loss = torch.mean(batch_avg_loss)
         
-        return loss
+        return loss.item()
     
     def run_eval(self):
         eval_dir = os.path.join(config.log_root, 'eval_log')

@@ -1,6 +1,7 @@
 import os
 
 root_dir = os.path.expanduser("~")
+#root_dir = os.path.join(root_dir, "Desktop/NLG")
 
 train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/val_*")
