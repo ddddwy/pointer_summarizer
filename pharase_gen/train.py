@@ -20,6 +20,7 @@ from utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
+tf.logging.set_verbosity(tf.logging.INFO)
 
 class Train(object):
     def __init__(self):
@@ -189,7 +190,7 @@ class Train(object):
                 eval_summary_writer.flush()
             print_interval = 100
             if iter % print_interval == 0:
-                print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
+                tf.logging.info('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
                 iter, print_interval, time.time() - start, val_avg_loss/iter))
                 start = time.time()
             val_batch = val_batcher.next_batch()
@@ -208,20 +209,20 @@ class Train(object):
 
             print_interval = 100
             if iter % print_interval == 0:
-                print('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
+                tf.logging.info('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
-            if iter % 1000 == 0:
+            if iter % 5000 == 0:
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
-                print('Evaluate the model %s at validation set....'%model_file_path)
+                tf.logging.info('Evaluate the model %s at validation set....'%model_file_path)
                 self.model = Model(model_file_path, is_eval=True)
                 val_avg_loss = self.run_eval()
                 self.model = Model(model_file_path, is_eval=False)
                 if val_avg_loss < min_val_loss:
                     min_val_loss = val_avg_loss
                     best_model_file_path = self.save_model(running_avg_loss, iter, mode='eval')
-                    print('Save best model at %s'%best_model_file_path)
+                    tf.logging.info('Save best model at %s'%best_model_file_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")
