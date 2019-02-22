@@ -3,11 +3,11 @@ import os
 root_dir = os.path.expanduser("~")
 #root_dir = os.path.join(root_dir, "Desktop/NLG")
 
-train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
-eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/val_*")
-decode_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/test_*")
-vocab_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/vocab")
-log_root = os.path.join(root_dir, "pointer_summarizer/log")
+train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/train_*")
+eval_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
+decode_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/test_*")
+vocab_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/vocab")
+log_root = os.path.join(root_dir, "pointer_summarizer/log_quora")
 
 # Hyperparameters
 hidden_dim= 256
