@@ -2,9 +2,9 @@ import os
 
 root_dir = os.path.expanduser("~")
 
-train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/small/train_*")
-eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/small/val_*")
-decode_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/small/test_*")
+train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
+eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/val_*")
+decode_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/test_*")
 vocab_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/vocab")
 log_root = os.path.join(root_dir, "pointer_summarizer/log")
 
