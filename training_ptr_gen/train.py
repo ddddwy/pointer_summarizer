@@ -211,6 +211,7 @@ class Train(object):
             if iter % 1000 == 0:
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
+                print('Evaluate the model %s at validation set....'%model_file_path)
                 self.model = Model(model_file_path, is_eval=True)
                 val_avg_loss = self.run_eval()
                 self.model = Model(model_file_path, is_eval=False)
