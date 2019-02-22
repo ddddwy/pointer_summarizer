@@ -183,7 +183,7 @@ class Train(object):
             val_avg_loss += loss
             loss_sum = tf.Summary()
             loss_sum.value.add(tag='current validation loss', simple_value=loss)
-            eval_summary_writer.add_summary(loss, iter)
+            eval_summary_writer.add_summary(loss_sum, iter)
 
             if iter % 1000 == 0:
                 eval_summary_writer.flush()
