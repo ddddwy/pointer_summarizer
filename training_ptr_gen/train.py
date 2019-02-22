@@ -37,7 +37,7 @@ class Train(object):
             os.mkdir(self.train_log)
         self.summary_writer = tf.summary.FileWriter(self.train_log)
 
-    def save_model(self, running_avg_loss, iter):
+    def save_model(self, running_avg_loss, iter, mode):
         state = {
             'iter': iter,
             'encoder_state_dict': self.model.encoder.state_dict(),
@@ -46,11 +46,19 @@ class Train(object):
             'optimizer': self.optimizer.state_dict(),
             'current_loss': running_avg_loss
         }
-        if len(os.listdir(self.model_dir))>0:
-            shutil.rmtree(self.model_dir)
+        if mode == 'train':
+            save_model_dir = self.model_dir
+        else:
+            best_model_dir = os.path.join(config.log_root, 'best_model')
+            if not os.path.exists(best_model_dir):
+                os.mkdir(best_model_dir)
+            save_model_dir = best_model_dir
+        
+        if len(os.listdir(save_model_dir))>0:
+            shutil.rmtree(save_model_dir)
             time.sleep(2)
-            os.mkdir(self.model_dir)
-        train_model_path = os.path.join(self.model_dir, 'model_best_%d'%(iter))
+            os.mkdir(save_model_dir)
+        train_model_path = os.path.join(save_model_dir, 'model_best_%d'%(iter))
         torch.save(state, train_model_path)
         return train_model_path
 
@@ -201,16 +209,15 @@ class Train(object):
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
             if iter % 1000 == 0:
-                if iter == 1000:
-                    model_file_path = self.save_model(running_avg_loss, iter)
                 self.summary_writer.flush()
+                model_file_path = self.save_model(running_avg_loss, iter, mode='train')
                 self.model = Model(model_file_path, is_eval=True)
                 val_avg_loss = self.run_eval()
                 self.model = Model(model_file_path, is_eval=False)
                 if val_avg_loss < min_val_loss:
                     min_val_loss = val_avg_loss
-                    model_file_path = self.save_model(running_avg_loss, iter)
-                    print('Save best model at %s'%model_file_path)
+                    best_model_file_path = self.save_model(running_avg_loss, iter, mode='eval')
+                    print('Save best model at %s'%best_model_file_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train script")
