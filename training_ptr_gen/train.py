@@ -213,7 +213,7 @@ class Train(object):
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
             if iter % 1000 == 0:
-                self.summary_writer.info()
+                self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
                 tf.logging.info('Evaluate the model %s at validation set....'%model_file_path)
                 self.model = Model(model_file_path, is_eval=True)

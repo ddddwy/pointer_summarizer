@@ -245,9 +245,9 @@ class Batcher(object):
 
   def watch_threads(self):
     while True:
-      tf.logging.info(
-        'Bucket queue size: %i, Input queue size: %i',
-        self._batch_queue.qsize(), self._example_queue.qsize())
+#      tf.logging.info(
+#        'Bucket queue size: %i, Input queue size: %i',
+#        self._batch_queue.qsize(), self._example_queue.qsize())
 
       time.sleep(60)
       for idx,t in enumerate(self._example_q_threads):
