@@ -27,7 +27,7 @@ class Evaluate(object):
         time.sleep(5)
 #        model_name = os.path.basename(model_file_path)
         
-        self.model_dir = os.path.join(config.log_root, 'test_model')
+        self.model_dir = os.path.join(config.log_root, 'val_model')
         if not os.path.exists(self.model_dir):
             os.mkdir(self.model_dir)
 
@@ -43,34 +43,35 @@ class Evaluate(object):
             get_input_from_batch(batch, use_cuda)
         dec_batch, dec_padding_mask, max_dec_len, dec_lens_var, target_batch = \
             get_output_from_batch(batch, use_cuda)
-
-        encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
-        s_t_1 = self.model.reduce_state(encoder_hidden)
-
-        step_losses = []
-        for di in range(min(max_dec_len, config.max_dec_steps)):
-            y_t_1 = dec_batch[:, di]  # Teacher forcing
-            final_dist, s_t_1, c_t_1,attn_dist, p_gen, next_coverage = self.model.decoder(y_t_1, s_t_1,
-                                                        encoder_outputs, encoder_feature, enc_padding_mask, c_t_1,
-                                                        extra_zeros, enc_batch_extend_vocab, coverage, di)
-            target = target_batch[:, di]
-            gold_probs = torch.gather(final_dist, 1, target.unsqueeze(1)).squeeze()
-            step_loss = -torch.log(gold_probs + config.eps)
-            if config.is_coverage:
-                step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
-                step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
-                coverage = next_coverage
-
-            step_mask = dec_padding_mask[:, di]
-            step_loss = step_loss * step_mask
-            step_losses.append(step_loss)
+            
+        with torch.no_grad():
+            encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+            s_t_1 = self.model.reduce_state(encoder_hidden)
+    
+            step_losses = []
+            for di in range(min(max_dec_len, config.max_dec_steps)):
+                y_t_1 = dec_batch[:, di]  # Teacher forcing
+                final_dist, s_t_1, c_t_1,attn_dist, p_gen, next_coverage = self.model.decoder(y_t_1, s_t_1,
+                                                            encoder_outputs, encoder_feature, enc_padding_mask, c_t_1,
+                                                            extra_zeros, enc_batch_extend_vocab, coverage, di)
+                target = target_batch[:, di]
+                gold_probs = torch.gather(final_dist, 1, target.unsqueeze(1)).squeeze()
+                step_loss = -torch.log(gold_probs + config.eps)
+                if config.is_coverage:
+                    step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
+                    step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
+                    coverage = next_coverage
+    
+                step_mask = dec_padding_mask[:, di]
+                step_loss = step_loss * step_mask
+                step_losses.append(step_loss)
 
         sum_step_losses = torch.sum(torch.stack(step_losses, 1), 1)
         batch_avg_loss = sum_step_losses / dec_lens_var
         loss = torch.mean(batch_avg_loss)
 
 #        return loss.data[0]
-        return loss
+        return loss.item()
 
     def run_eval(self):
         running_avg_loss, iter = 0, 0
@@ -92,24 +93,6 @@ class Evaluate(object):
             batch = self.batcher.next_batch()
         return running_avg_loss
     
-    def save_model(self, running_avg_loss, iter):
-        state = {
-            'iter': iter,
-            'encoder_state_dict': self.model.encoder.state_dict(),
-            'decoder_state_dict': self.model.decoder.state_dict(),
-            'reduce_state_dict': self.model.reduce_state.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
-            'current_loss': running_avg_loss
-        }
-        
-        if len(os.listdir(self.model_dir))>0:
-            shutil.rmtree(self.model_dir)
-            time.sleep(2)
-            os.mkdir(self.model_dir)
-        test_model_path = os.path.join(self.model_dir, 'model_best')
-        torch.save(state, test_model_path)
-        return test_model_path
-
 
 if __name__ == '__main__':
     model_filename = sys.argv[1]

@@ -18,6 +18,7 @@ from batcher import Batcher
 from data import Vocab
 from utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
+from eval import Evaluate
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -216,9 +217,8 @@ class Train(object):
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
                 tf.logging.info('Evaluate the model %s at validation set....'%model_file_path)
-                self.model = Model(model_file_path, is_eval=True)
-                val_avg_loss = self.run_eval()
-                self.model = Model(model_file_path, is_eval=False)
+                evl_model = Evaluate(model_file_path)
+                val_avg_loss = evl_model.run_eval()
                 if val_avg_loss < min_val_loss:
                     min_val_loss = val_avg_loss
                     best_model_file_path = self.save_model(running_avg_loss, iter, mode='eval')
