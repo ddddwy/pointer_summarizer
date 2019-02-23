@@ -17,7 +17,7 @@ max_enc_steps=400
 max_dec_steps=200
 beam_size=4
 min_dec_steps=5
-vocab_size=5000
+vocab_size=50000
 
 lr=0.15
 adagrad_init_acc=0.1
