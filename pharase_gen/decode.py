@@ -88,7 +88,7 @@ class BeamSearch(object):
             except ValueError:
                 decoded_words = decoded_words
 
-            original_abstract = batch.original_abstract
+            original_abstract = batch.original_abstracts[0]
 
             write_for_rouge(original_abstract, decoded_words, counter,
                             self._rouge_ref_dir, self._rouge_dec_dir)
