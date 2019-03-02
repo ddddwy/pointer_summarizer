@@ -21,7 +21,6 @@ rouge_l_recall: 0.4067 with confidence interval (0.4042, 0.4092)
 rouge_l_precision: 0.3397 with confidence interval (0.3371, 0.3420)
 ```
 
-![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
 
 Training with pointer generation enabled
 --------------------------------------------
@@ -44,18 +43,3 @@ rouge_l_f_score: 0.3202 with confidence interval (0.3179, 0.3225)
 rouge_l_recall: 0.3399 with confidence interval (0.3374, 0.3426)
 rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 ```
-![Alt text](learning_curve.png?raw=true "Learning Curve with pointer generation")
-
-
-How to run training:
---------------------------------------------
-1) Follow data generation instruction from https://github.com/abisee/cnn-dailymail
-2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
-3) For training run start_train.sh, for decoding run start_decode.sh, and for evaluating run run_eval.sh
-
-Note:
-* It is tested on pytorch 0.4 with python 2.7
-* You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
-
-
-
