@@ -5,7 +5,7 @@ root_dir = os.path.expanduser("~")
 
 train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
-decode_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/test_*")
+decode_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
 vocab_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/vocab")
 log_root = os.path.join(root_dir, "pointer_summarizer/log_quora")
 
@@ -13,11 +13,11 @@ log_root = os.path.join(root_dir, "pointer_summarizer/log_quora")
 hidden_dim= 256
 emb_dim= 128
 batch_size= 8
-max_enc_steps=20
-max_dec_steps=20
-beam_size=4
-min_dec_steps=5
-vocab_size=10000
+max_enc_steps= 20
+max_dec_steps= 20
+beam_size= 8
+min_dec_steps= 5
+vocab_size= 5000
 
 lr=0.15
 adagrad_init_acc=0.1
