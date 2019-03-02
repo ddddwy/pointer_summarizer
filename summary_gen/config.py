@@ -5,6 +5,7 @@ root_dir = os.path.expanduser("~")
 
 print_interval = 100
 model_save_iters = 1000
+eval_teacher_forcing = False
 
 train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/val_*")
