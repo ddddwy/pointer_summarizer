@@ -3,6 +3,9 @@ import os
 root_dir = os.path.expanduser("~")
 #root_dir = os.path.join(root_dir, "Desktop/NLG")
 
+print_interval = 10
+model_save_iters = 1000
+
 train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/val_*")
 decode_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/test_*")
