@@ -146,7 +146,6 @@ def outputids2words(id_list, vocab, article_oovs):
 def abstract2sents(abstract):
   cur = 0
   sents = []
-  abstract = str(abstract, encoding='utf8')
   while True:
     try:
       start_p = abstract.index(SENTENCE_START, cur)
