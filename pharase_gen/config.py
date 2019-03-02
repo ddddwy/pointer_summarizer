@@ -22,7 +22,7 @@ beam_size= 8
 min_dec_steps= 5
 vocab_size= 5000
 
-lr=0.15
+lr=0.05
 adagrad_init_acc=0.1
 rand_unif_init_mag=0.02
 trunc_norm_init_std=1e-4

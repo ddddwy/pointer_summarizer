@@ -79,10 +79,10 @@ class Evaluate(object):
 
             if iter % config.save_model_iter == 0:
                 self.summary_writer.flush()
-            if iter % config.print_interval == 0:
-                print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
-                iter, config.print_interval, time.time() - start, running_avg_loss))
-                start = time.time()
+#            if iter % config.print_interval == 0:
+#                print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
+#                iter, config.print_interval, time.time() - start, running_avg_loss))
+#                start = time.time()
             batch = self.batcher.next_batch()
         return running_avg_loss
     
