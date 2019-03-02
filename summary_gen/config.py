@@ -3,7 +3,7 @@ import os
 root_dir = os.path.expanduser("~")
 #root_dir = os.path.join(root_dir, "Desktop/NLG")
 
-print_interval = 10
+print_interval = 100
 model_save_iters = 1000
 
 train_data_path = os.path.join(root_dir, "cnn-dailymail/cnn/finished_lines/chunked/train_*")
@@ -29,7 +29,7 @@ trunc_norm_init_std=1e-4
 max_grad_norm=2.0
 
 pointer_gen = True
-is_coverage = True
+is_coverage = False
 cov_loss_wt = 1.0
 
 eps = 1e-12
