@@ -3,7 +3,10 @@ import os
 root_dir = os.path.expanduser("~")
 #root_dir = os.path.join(root_dir, "Desktop/NLG")
 
-train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/train_*")
+print_interval = 10
+save_model_iter = 100
+
+train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
 decode_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
 vocab_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/vocab")

@@ -1,5 +1,4 @@
 #Most of this file is copied form https://github.com/abisee/pointer-generator/blob/master/batcher.py
-
 import queue as Queue
 import time
 from random import shuffle
@@ -17,7 +16,7 @@ random.seed(1234)
 
 class Example(object):
 
-  def __init__(self, article, abstract, vocab):
+  def __init__(self, article, abstract_sentences, vocab):
     # Get ids of special tokens
     start_decoding = vocab.word2id(data.START_DECODING)
     stop_decoding = vocab.word2id(data.STOP_DECODING)
@@ -30,6 +29,7 @@ class Example(object):
     self.enc_input = [vocab.word2id(w) for w in article_words] # list of word ids; OOVs are represented by the id for UNK token
 
     # Process the abstract
+    abstract = ' '.join(abstract_sentences)
     abstract_words = abstract.split() # list of strings
     abs_ids = [vocab.word2id(w) for w in abstract_words] # list of word ids; OOVs are represented by the id for UNK token
 
@@ -51,6 +51,7 @@ class Example(object):
     # Store the original strings
     self.original_article = article
     self.original_abstract = abstract
+    self.original_abstract_sents = abstract_sentences
 
 
   def get_dec_inp_targ_seqs(self, sequence, max_len, start_id, stop_id):
@@ -143,7 +144,7 @@ class Batch(object):
   def store_orig_strings(self, example_list):
     self.original_articles = [ex.original_article for ex in example_list] # list of lists
     self.original_abstracts = [ex.original_abstract for ex in example_list] # list of lists
-
+    self.original_abstracts_sents = [ex.original_abstract_sents for ex in example_list]
 
 class Batcher(object):
   BATCH_QUEUE_MAX = 100 # max number of batches the batch_queue can hold
@@ -214,7 +215,8 @@ class Batcher(object):
           raise Exception("single_pass mode is off but the example generator is out of data; error.")
 
 #      abstract_sentences = [sent.strip() for sent in data.abstract2sents(abstract)] # Use the <s> and </s> tags in abstract to get a list of sentences.
-      example = Example(article, [abstract], self._vocab) # Process into an Example.
+      abstract_sentences = [abstract]
+      example = Example(article, abstract_sentences, self._vocab) # Process into an Example.
       self._example_queue.put(example) # place the Example in the example queue.
 
   def fill_batch_queue(self):

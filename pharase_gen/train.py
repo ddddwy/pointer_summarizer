@@ -29,6 +29,9 @@ class Train(object):
         self.batcher = Batcher(config.train_data_path, self.vocab, mode='train',
                                batch_size=config.batch_size, single_pass=False)
         time.sleep(5)
+        
+        if not os.path.exists(config.log_root):
+            os.mkdir(config.log_root)
 
         self.model_dir = os.path.join(config.log_root, 'train_model')
         if not os.path.exists(self.model_dir):
@@ -144,12 +147,11 @@ class Train(object):
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
             iter += 1
 
-            print_interval = 100
-            if iter % print_interval == 0:
-                tf.logging.info('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, print_interval,
+            if iter % config.print_interval == 0:
+                tf.logging.info('steps %d, seconds for %d batch: %.2f , loss: %f, min_val_loss: %f' % (iter, config.print_interval,
                                                                            time.time() - start, loss, min_val_loss))
                 start = time.time()
-            if iter % 5000 == 0:
+            if iter % config.save_model_iter == 0:
                 self.summary_writer.flush()
                 model_file_path = self.save_model(running_avg_loss, iter, mode='train')
                 tf.logging.info('Evaluate the model %s at validation set....'%model_file_path)

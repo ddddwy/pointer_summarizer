@@ -3,7 +3,6 @@ from __future__ import unicode_literals, print_function, division
 import os
 import time
 import sys
-import shutil
 
 import tensorflow as tf
 import torch
@@ -25,11 +24,6 @@ class Evaluate(object):
                                batch_size=config.batch_size, single_pass=True)
         self.model_file_path = model_file_path
         time.sleep(5)
-#        model_name = os.path.basename(model_file_path)
-        
-        self.model_dir = os.path.join(config.log_root, 'val_model')
-        if not os.path.exists(self.model_dir):
-            os.mkdir(self.model_dir)
 
         eval_dir = os.path.join(config.log_root, 'eval_log')
         if not os.path.exists(eval_dir):
@@ -83,12 +77,11 @@ class Evaluate(object):
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
             iter += 1
 
-            if iter % 100 == 0:
+            if iter % config.save_model_iter == 0:
                 self.summary_writer.flush()
-            print_interval = 100
-            if iter % print_interval == 0:
+            if iter % config.print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , validation_loss: %f' % (
-                iter, print_interval, time.time() - start, running_avg_loss))
+                iter, config.print_interval, time.time() - start, running_avg_loss))
                 start = time.time()
             batch = self.batcher.next_batch()
         return running_avg_loss
@@ -98,5 +91,3 @@ if __name__ == '__main__':
     model_filename = sys.argv[1]
     eval_processor = Evaluate(model_filename)
     eval_processor.run_eval()
-
-
