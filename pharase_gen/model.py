@@ -42,26 +42,30 @@ def init_wt_unif(wt):
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
+        # shape = (batch_size, max_seq_len, emb_dim)
         self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
         init_wt_normal(self.embedding.weight)
-
+        
+        # shape = (batch_size, seq_len, 2*hidden_size)
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         init_lstm_wt(self.lstm)
-
+        
         self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
 
     #seq_lens should be in descending order
     def forward(self, input, seq_lens):
-        embedded = self.embedding(input)
+        embedded = self.embedding(input)    # shape = (batch_size, max_seq_len, emb_dim)
 
         packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
-        output, hidden = self.lstm(packed)
+        output, hidden = self.lstm(packed)  # hidden shape = ((batch, 2, hidden_size), (batch, 2, hidden_size))
 
+        # shape = (batch_size, max_seq_len, 2*hidden_size)
         encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
         encoder_outputs = encoder_outputs.contiguous()
-
+        
+        # shape = (batch_size*max_seq_len, 2*hidden_size)
         encoder_feature = encoder_outputs.view(-1, 2*config.hidden_dim)  # B * t_k x 2*hidden_dim
-        encoder_feature = self.W_h(encoder_feature)
+        encoder_feature = self.W_h(encoder_feature) # shape = (batch_size*max_seq_len, 2*hidden_size)
 
         return encoder_outputs, encoder_feature, hidden
 
@@ -76,10 +80,10 @@ class ReduceState(nn.Module):
 
     def forward(self, hidden):
         h, c = hidden # h, c dim = 2 x b x hidden_dim
-        h_in = h.transpose(0, 1).contiguous().view(-1, config.hidden_dim * 2)
-        hidden_reduced_h = F.relu(self.reduce_h(h_in))
+        h_in = h.transpose(0, 1).contiguous().view(-1, config.hidden_dim * 2)   # shape = (batch_size, 2*hidden_size)
+        hidden_reduced_h = F.relu(self.reduce_h(h_in))  # shape = (batch_size, hidden_size)
         c_in = c.transpose(0, 1).contiguous().view(-1, config.hidden_dim * 2)
-        hidden_reduced_c = F.relu(self.reduce_c(c_in))
+        hidden_reduced_c = F.relu(self.reduce_c(c_in))  # shape = (batch_size, hidden_size)
 
         return (hidden_reduced_h.unsqueeze(0), hidden_reduced_c.unsqueeze(0)) # h, c dim = 1 x b x hidden_dim
 
@@ -93,7 +97,7 @@ class Attention(nn.Module):
         self.v = nn.Linear(config.hidden_dim * 2, 1, bias=False)
 
     def forward(self, s_t_hat, encoder_outputs, encoder_feature, enc_padding_mask, coverage):
-        b, t_k, n = list(encoder_outputs.size())
+        b, t_k, n = list(encoder_outputs.size()) # b = batch_size, t_k = max_seq_len, n = 2*hidden_size
 
         dec_fea = self.decode_proj(s_t_hat) # B x 2*hidden_dim
         dec_fea_expanded = dec_fea.unsqueeze(1).expand(b, t_k, n).contiguous() # B x t_k x 2*hidden_dim

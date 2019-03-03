@@ -100,8 +100,24 @@ class Train(object):
 
         self.optimizer.zero_grad()
         
+        # encoder_outputs shape = (batch_size, max_seq_len, 2*hidden_size)
+        # encoder_feature shape = (batch_size*max_seq_len, 2*hidden_size)
+        # encoder_hidden[0] shape = (batch, 2, hidden_size)
         encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        # s_t_1[0] shape = (1, batch_size, hidden_size)
         s_t_1 = self.model.reduce_state(encoder_hidden)
+        
+        '''
+        print('Actual enc_batch:')
+        en_words = [self.vocab._id_to_word[idx] for idx in enc_batch[0].numpy()]
+        print(en_words)
+        print('Actual de_batch:')
+        de_words = [self.vocab._id_to_word[idx] for idx in dec_batch[0].numpy()]
+        print(de_words)
+        print('Actual tar_batch:')
+        tar_words = [self.vocab._id_to_word[idx] for idx in target_batch[0].numpy()]
+        print(tar_words)
+        '''
 
         step_losses = []
         for di in range(min(max_dec_len, config.max_dec_steps)):

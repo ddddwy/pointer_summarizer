@@ -27,12 +27,12 @@ class Example(object):
       article_words = article_words[:config.max_enc_steps]
     self.enc_len = len(article_words) # store the length after truncation but before padding
     self.enc_input = [vocab.word2id(w) for w in article_words] # list of word ids; OOVs are represented by the id for UNK token
-
+    
     # Process the abstract
     abstract = ' '.join(abstract_sentences)
     abstract_words = abstract.split() # list of strings
     abs_ids = [vocab.word2id(w) for w in abstract_words] # list of word ids; OOVs are represented by the id for UNK token
-
+    
     # Get the decoder input sequence and target sequence
     self.dec_input, self.target = self.get_dec_inp_targ_seqs(abs_ids, config.max_dec_steps, start_decoding, stop_decoding)
     self.dec_len = len(self.dec_input)
@@ -46,13 +46,14 @@ class Example(object):
       abs_ids_extend_vocab = data.abstract2ids(abstract_words, vocab, self.article_oovs)
 
       # Overwrite decoder target sequence so it uses the temp article OOV ids
+      # NOTE: dec_input does not contain article OOV ids!!!!
       _, self.target = self.get_dec_inp_targ_seqs(abs_ids_extend_vocab, config.max_dec_steps, start_decoding, stop_decoding)
 
     # Store the original strings
     self.original_article = article
     self.original_abstract = abstract
     self.original_abstract_sents = abstract_sentences
-
+    
 
   def get_dec_inp_targ_seqs(self, sequence, max_len, start_id, stop_id):
     inp = [start_id] + sequence[:]
@@ -140,6 +141,7 @@ class Batch(object):
       self.dec_lens[i] = ex.dec_len
       for j in range(ex.dec_len):
         self.dec_padding_mask[i][j] = 1
+
 
   def store_orig_strings(self, example_list):
     self.original_articles = [ex.original_article for ex in example_list] # list of lists
