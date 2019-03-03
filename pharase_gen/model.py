@@ -112,7 +112,8 @@ class Attention(nn.Module):
         e = torch.tanh(att_features) # B * t_k x 2*hidden_dim
         scores = self.v(e)  # B * t_k x 1
         scores = scores.view(-1, t_k)  # B x t_k
-
+        
+        # NOTE: Here may lead to NAN problem!!!
         attn_dist_ = F.softmax(scores, dim=1)*enc_padding_mask # B x t_k
         normalization_factor = attn_dist_.sum(1, keepdim=True)
         attn_dist = attn_dist_ / normalization_factor
@@ -125,7 +126,7 @@ class Attention(nn.Module):
 
         if config.is_coverage:
             coverage = coverage.view(-1, t_k)
-            coverage = coverage + attn_dist
+            coverage = coverage + attn_dist  # B x t_k
 
         return c_t, attn_dist, coverage
 
@@ -134,6 +135,7 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.attention_network = Attention()
         # decoder
+        # shape = (batch_size, emb_dim)
         self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
         init_wt_normal(self.embedding.weight)
 
@@ -159,11 +161,12 @@ class Decoder(nn.Module):
                                  c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
             c_t, _, coverage_next = self.attention_network(s_t_hat, encoder_outputs, encoder_feature,
                                                               enc_padding_mask, coverage)
-            coverage = coverage_next
+            # c_t = B x 2*hidden_dim, coverage_next = B x max_seq_len
+            coverage = coverage_next  # B x max_seq_len
 
-        y_t_1_embd = self.embedding(y_t_1)
-        x = self.x_context(torch.cat((c_t_1, y_t_1_embd), 1))
-        lstm_out, s_t = self.lstm(x.unsqueeze(1), s_t_1)
+        y_t_1_embd = self.embedding(y_t_1) #  B x emb_dim
+        x = self.x_context(torch.cat((c_t_1, y_t_1_embd), 1)) # B x emb_dim
+        lstm_out, s_t = self.lstm(x.unsqueeze(1), s_t_1)  # lstm_out = B x 1 x hidden_size, s_t = B x 1 x hidden_size
 
         h_decoder, c_decoder = s_t
         s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
@@ -178,7 +181,7 @@ class Decoder(nn.Module):
         if config.pointer_gen:
             p_gen_input = torch.cat((c_t, s_t_hat, x), 1)  # B x (2*2*hidden_dim + emb_dim)
             p_gen = self.p_gen_linear(p_gen_input)
-            p_gen = torch.sigmoid(p_gen)
+            p_gen = torch.sigmoid(p_gen)  # B x 1
 
         output = torch.cat((lstm_out.view(-1, config.hidden_dim), c_t), 1) # B x hidden_dim * 3
         output = self.out1(output) # B x hidden_dim

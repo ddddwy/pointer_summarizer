@@ -5,13 +5,12 @@ root_dir = os.path.expanduser("~")
 
 print_interval = 100
 save_model_iter = 1000
-eval_teacher_forcing = False
 
-train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
+train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/val_*")
 decode_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/test_*")
 vocab_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/vocab")
-log_root = os.path.join(root_dir, "pointer_summarizer/log_quora_val")
+log_root = os.path.join(root_dir, "pointer_summarizer/log_quora_l2")
 
 # Hyperparameters
 hidden_dim= 256
@@ -25,6 +24,7 @@ vocab_size= 5000
 
 lr=0.15
 adagrad_init_acc=0.1
+L2_loss = 0.1
 rand_unif_init_mag=0.02
 trunc_norm_init_std=1e-4
 max_grad_norm=2.0
