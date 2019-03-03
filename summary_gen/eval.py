@@ -14,6 +14,7 @@ from data import Vocab
 from utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
 from model import Model
+from torch.autograd import Variable
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
@@ -43,7 +44,7 @@ class Evaluate(object):
             s_t_1 = self.model.reduce_state(encoder_hidden)
     
             step_losses = []
-            y_t_1 = torch.tensor(config.batch_size*[self.vocab._word_to_id['[START]']])
+            y_t_1 = Variable(torch.tensor(config.batch_size*[self.vocab._word_to_id['[START]']]))
             if use_cuda:
                 y_t_1 = y_t_1.cuda()
             for di in range(min(max_dec_len, config.max_dec_steps)):

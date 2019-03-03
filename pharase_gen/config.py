@@ -3,8 +3,8 @@ import os
 root_dir = os.path.expanduser("~")
 #root_dir = os.path.join(root_dir, "Desktop/NLG")
 
-print_interval = 10
-save_model_iter = 100
+print_interval = 100
+save_model_iter = 1000
 eval_teacher_forcing = False
 
 train_data_path = os.path.join(root_dir, "cnn-dailymail/quora/finished_files/chunked/train_*")
