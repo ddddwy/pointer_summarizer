@@ -44,22 +44,13 @@ class Evaluate(object):
             s_t_1 = self.model.reduce_state(encoder_hidden)
     
             step_losses = []
-            y_t_1 = Variable(torch.tensor(config.batch_size*[self.vocab._word_to_id['[START]']]))
-            if use_cuda:
-                y_t_1 = y_t_1.cuda()
             for di in range(min(max_dec_len, config.max_dec_steps)):
+                y_t_1 = dec_batch[:, di]  # Teacher forcing
                 final_dist, s_t_1, c_t_1,attn_dist, p_gen, next_coverage = self.model.decoder(y_t_1, s_t_1,
                                                             encoder_outputs, encoder_feature, enc_padding_mask, c_t_1,
                                                             extra_zeros, enc_batch_extend_vocab, coverage, di)
-                target = target_batch[:, di]
-                if config.eval_teacher_forcing:
-                    y_t_1 = dec_batch[:, di]  # Teacher forcing
-                else:
-                    _, topk_id = final_dist.topk(1)
-                    y_t_1 = torch.tensor([topk_id[i][0] for i in range(config.batch_size)])
-                    if use_cuda:
-                        y_t_1 = y_t_1.cuda()
                 
+                target = target_batch[:, di]
                 gold_probs = torch.gather(final_dist, 1, target.unsqueeze(1)).squeeze()
                 step_loss = -torch.log(gold_probs + config.eps)
                 if config.is_coverage:
